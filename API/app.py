@@ -23,6 +23,19 @@ import yake
 
 app = Flask(__name__)
 
+# decorator for unsupervised Tag Recommendation
+
+def extract_tags(text):
+    simple_kwextractor = yake.KeywordExtractor()
+    post_keywords = simple_kwextractor.extract_keywords(text)
+    post_keywords = list(set(post_keywords))
+    sentence_output = ""
+    for word, number in post_keywords[:2]:
+        sentence_output += word + " "
+    
+    return sentence_output
+
+# decorators for unsupervised Tag Recommendation
 def process_text(text):
     text = text.lower() # lowercase
     text = re.sub(r"what's", "what is ", text)
@@ -46,16 +59,6 @@ def process_text(text):
     tokens = word_tokenize(text)
     return tokens
 
-def extract_tags(text):
-    simple_kwextractor = yake.KeywordExtractor()
-    post_keywords = simple_kwextractor.extract_keywords(text)
-    post_keywords = list(set(post_keywords))
-    sentence_output = ""
-    for word, number in post_keywords[:2]:
-        sentence_output += word + " "
-    
-    return sentence_output
-
 def vectorize_query(tokens):
     tfidfVectorizer = load("vectorizer.pkl")
     vectorized_query = tfidfVectorizer.transform(tokens).todense()
@@ -63,15 +66,15 @@ def vectorize_query(tokens):
 
 
 def predict_tags(vectorized_query):
-    model = load('model.pkl')
+    model = load('model.pkl') # trained Linear Regression Classifier
     y_preds= model.predict(vectorized_query)
-    popular_tags = load('tags.pkl')
+    popular_tags = load('tags.pkl') # I load the most popular tags from which I will choose 
     df_probs = pd.DataFrame(y_preds, columns= popular_tags).T
     df_probs["probability"] = df_probs.sum(axis=1)
     df_probs.reset_index(inplace=True)
     
     df_probs = df_probs.sort_values(by='probability', ascending=False)
-    tags = df_probs['index'][:5].tolist()
+    tags = df_probs['index'][:5].tolist() # I choose teh most 5 probable tags
     return tags
 
 @app.route('/api_message', methods=["POST"])
