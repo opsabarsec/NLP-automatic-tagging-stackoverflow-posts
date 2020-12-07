@@ -51,4 +51,4 @@ notebooks/Stackoverflowtags-Part2.ipynb
 
 Results are summarized below
 
-![tags_results](/documentation/results.jpg)
+![tags_results](/documentation/results.png)
